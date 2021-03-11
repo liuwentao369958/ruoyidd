@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CabinetMapper">
+
+    <resultMap type="Cabinet" id="CabinetResult">
+        <result property="cabinetId" column="cabinet_id"/>
+        <result property="cabinetBianha" column="cabinet_bianha"/>
+        <result property="putinId" column="putin_id"/>
+        <result property="fatherCabinetid" column="father_cabinetid"/>
+        <result property="ancestors" column="ancestors"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="user" column="user"/>
+        <result property="createTime" column="create_time"/>
+        <result property="openTime" column="open_time"/>
+    </resultMap>
+    <resultMap id="CabinetPutindianResult" type="Cabinet" extends="CabinetResult">
+        <collection property="putindianList" notNullColumn="putin_id" javaType="java.util.List"
+                    resultMap="PutindianResult"/>
+    </resultMap>
+    <resultMap type="Putindian" id="PutindianResult">
+        <result property="putinId" column="putin_id"/>
+        <result property="plotId" column="plot_id"/>
+        <result property="ancestors" column="ancestors"/>
+        <result property="orderNum" column="order_num"/>
+        <result property="createTime" column="create_time"/>
+        <result property="secret" column="secret"/>
+    </resultMap>
+    <resultMap id="PutindianCommunityManagementResult" type="Cabinet" extends="PutindianResult">
+        <collection property="CommunityManagementList" notNullColumn="plot_id" javaType="java.util.List"
+                    resultMap="CommunityManagementResult"/>
+    </resultMap>
+    <resultMap type="CommunityManagement" id="CommunityManagementResult">
+        <result property="plotId"    column="plot_id"    />
+        <result property="parentplotId"    column="parentplot_id"    />
+        <result property="ancestors"    column="ancestors"    />
+        <result property="plotName"    column="plot_name"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="parentName" column="parent_name" />
+    </resultMap>
+
+    <!-- SELECT cabinet_id, cabinet_bianha, putin_id, father_cabinetid, ancestors, order_num, user, create_time, open_time
+    FROM putindian p ,community_management c,cabinet a WHERE p.plot_id=c.plot_id AND a.putin_id=p.putin_id AND p.plot_id=271 -->
+    <sql id="selectCabinetVo">
+   SELECT distinct a.cabinet_id, a.cabinet_bianha, a.putin_id, a.father_cabinetid, a.ancestors, a.order_num, a.USER, a.create_time, a.open_time
+        FROM putindian p ,community_management c,cabinet a
+</sql>
+
+    <select id="selectCabinetList" parameterType="Cabinet" resultMap="CabinetResult">
+        <include refid="selectCabinetVo"/>
+        <where>
+            p.plot_id=c.plot_id AND a.putin_id=p.putin_id
+            <if test="plotId != null and plotId != ''">
+                and p.plot_id = #{plotId}
+            </if>
+            <if test="cabinetBianha != null and cabinetBianha != ''">
+                and a.cabinet_bianha like concat('%', #{cabinetBianha}, '%')
+            </if>
+            <if test="putinId != null and putinId != ''">
+                and a.putin_id = #{putinId}
+            </if>
+            <if test="user != null  and user != ''">
+                and a.user = #{user}
+            </if>
+            <if test="createTime != null and createTime != ''">
+                and a.create_time &gt;= #{createTime}
+            </if>
+            <if test="openTime != null and openTime != ''">
+                and a.open_time &gt;= #{openTime}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectcabineTCount" parameterType="Cabinet" resultType="int">
+    select count(1) from cabinet
+    where father_cabinetid = #{cabinetId}
+    </select>
+
+    <select id="selectbianhao" parameterType="Long" resultMap="CabinetResult">
+    select * from cabinet
+    where cabinet_id = #{cabinetId}
+    </select>
+
+    <select id="selectCabinetById" parameterType="Long" resultMap="CabinetPutindianResult">
+    select a.cabinet_id, a.cabinet_bianha, a.putin_id, a.father_cabinetid, a.ancestors, a.order_num, a.user, a.create_time, a.open_time,
+    b.putin_id, b.plot_id, b.ancestors, b.order_num, b.create_time, b.secret
+    from cabinet a
+    left join putindian b on b.putin_id = a.cabinet_id
+    where a.cabinet_id = #{cabinetId}
+</select>
+
+    <insert id="insertCabinet" parameterType="Cabinet" useGeneratedKeys="true" keyProperty="cabinetId">
+        insert into cabinet
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="cabinetBianha != null">cabinet_bianha,</if>
+            <if test="putinId != null">putin_id,</if>
+            <if test="fatherCabinetid != null">father_cabinetid,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="user != null">user,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="openTime != null">open_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="cabinetBianha != null">#{cabinetBianha},</if>
+            <if test="putinId != null">#{putinId},</if>
+            <if test="fatherCabinetid != null">#{fatherCabinetid},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="user != null">#{user},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="openTime != null">#{openTime},</if>
+        </trim>
+    </insert>
+
+    <update id="updateCabinet" parameterType="Cabinet">
+        update cabinet
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cabinetBianha != null">cabinet_bianha = #{cabinetBianha},</if>
+            <if test="putinId != null">putin_id = #{putinId},</if>
+            <if test="fatherCabinetid != null">father_cabinetid = #{fatherCabinetid},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="user != null">user = #{user},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="openTime != null">open_time = #{openTime},</if>
+        </trim>
+        where cabinet_id = #{cabinetId}
+    </update>
+
+    <delete id="deleteCabinetById" parameterType="Long">
+    delete from cabinet where cabinet_id = #{cabinetId}
+</delete>
+
+    <delete id="deleteCabinetByIds" parameterType="String">
+        delete from cabinet where cabinet_id in
+        <foreach item="cabinetId" collection="array" open="(" separator="," close=")">
+            #{cabinetId}
+        </foreach>
+    </delete>
+
+    <delete id="deletePutindianByPutinIds" parameterType="String">
+        delete from putindian where putin_id in
+        <foreach item="putinId" collection="array" open="(" separator="," close=")">
+            #{putinId}
+        </foreach>
+    </delete>
+
+    <delete id="deletePutindianByPutinId" parameterType="Long">
+    delete from putindian where putin_id = #{putinId}
+</delete>
+
+    <insert id="batchPutindian">
+        insert into putindian( putin_id, plot_id, ancestors, order_num, create_time, secret) values
+        <foreach item="item" index="index" collection="list" separator=",">
+            ( #{item.putinId}, #{item.plotId}, #{item.ancestors}, #{item.orderNum}, #{item.createTime}, #{item.secret})
+        </foreach>
+    </insert>
+
+</mapper>

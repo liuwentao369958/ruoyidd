@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.CommunityManagementMapper">
+    
+    <resultMap type="CommunityManagement" id="CommunityManagementResult">
+        <result property="plotId"    column="plot_id"    />
+        <result property="parentplotId"    column="parentplot_id"    />
+        <result property="ancestors"    column="ancestors"    />
+        <result property="plotName"    column="plot_name"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="parentName" column="parent_name" />
+    </resultMap>
+
+    <sql id="selectCommunityManagementVo">
+        select plot_id, parentplot_id, ancestors, plot_name, order_num, create_by, create_time, update_by, update_time from community_management
+    </sql>
+
+    <select id="selectCommunityManagementList" parameterType="CommunityManagement" resultMap="CommunityManagementResult">
+        <include refid="selectCommunityManagementVo"/>
+        <where>
+            <if test="createBy != null and createBy != ''"> and create_by = #{createBy}</if>
+            <if test="createTime != null  and createTime != ''"> and create_time = #{createTime}</if>
+            <if test="plotName != null  and plotName != ''"> and plot_name like concat('%', #{plotName}, '%')</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                and date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+        order by parentplot_id
+    </select>
+<!-- ================================================     -->
+    <select id="selectplotCount" parameterType="CommunityManagement" resultType="int">
+        select count(1) from community_management
+        where parentplot_id = #{plotId}
+    </select>
+
+    <select id="selectplotById" parameterType="Long" resultMap="CommunityManagementResult">
+		 SELECT plot_id, parentplot_id, ancestors, plot_name, order_num,
+			(SELECT plot_name FROM community_management WHERE plot_id = parentplot_id) parent_name
+		FROM community_management
+		WHERE plot_id = #{plotId}
+	</select>
+
+ <!--==================================================================-->
+    <select id="selectCommunityManagementById" parameterType="Long" resultMap="CommunityManagementResult">
+        select t.plot_id, t.parentplot_id, t.ancestors, t.plot_name, t.order_num, t.create_by, t.create_time, t.update_by, t.update_time, p.plot_name as parent_name
+        from community_management t
+        left join community_management p on p.plot_id = t.parentplot_id
+        where t.plot_id = #{plotId}
+    </select>
+        
+    <insert id="insertCommunityManagement" parameterType="CommunityManagement" useGeneratedKeys="true" keyProperty="plotId">
+        insert into community_management
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentplotId != null">parentplot_id,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="plotName != null">plot_name,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentplotId != null">#{parentplotId},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="plotName != null">#{plotName},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateCommunityManagement" parameterType="CommunityManagement">
+        update community_management
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentplotId != null">parentplot_id = #{parentplotId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="plotName != null">plot_name = #{plotName},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where plot_id = #{plotId}
+    </update>
+
+    <delete id="deleteCommunityManagementById" parameterType="Long">
+        delete from community_management where plot_id = #{plotId}
+    </delete>
+
+    <delete id="deleteCommunityManagementByIds" parameterType="String">
+        delete from community_management where plot_id in 
+        <foreach item="plotId" collection="array" open="(" separator="," close=")">
+            #{plotId}
+        </foreach>
+    </delete>
+
+</mapper>

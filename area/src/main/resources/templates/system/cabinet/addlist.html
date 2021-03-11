@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('新增货柜管理')" />
+    <th:block th:include="include :: datetimepicker-css" />
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-cabinet-add">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">柜门编号：</label>
+            <div class="col-sm-8">
+                <input name="cabinetBianha" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">投放点：</label>I
+            <div class="col-sm-8">
+                <input name="putinId" class="form-control" type="text" th:value="${cabinet?.putinId}" readonly >
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">父柜子id：</label>
+            <div class="col-sm-8">
+                <div class="input-group">
+                    <input id="treeId" name="fatherCabinetid" type="hidden" th:value="${cabinet?.cabinetId}"/>
+                    <input class="form-control" type="text" onclick="selectCabinetTree()" id="treeName" readonly="true" th:value="${cabinet?.cabinetBianha}">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">显示顺序：</label>
+            <div class="col-sm-8">
+                <input name="orderNum" class="form-control" type="text" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"  placeholder="请输入数字" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">拥有者：</label>
+            <div class="col-sm-8">
+                <input name="user" class="form-control" type="text">
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer" />
+<th:block th:include="include :: select2-js" />
+<th:block th:include="include :: datetimepicker-js" />
+<script th:inline="javascript">
+    var prefix = ctx + "system/cabinet"
+    $("#form-cabinet-add").validate({
+        focusCleanup: true
+    });
+
+    function submitHandler() {
+        if ($.validate.form()) {
+            var data =  $('#form-cabinet-add').serialize()
+            $.operate.save(prefix + "/add",data);
+        }
+    }
+    /*货柜管理-新增-选择父部门树*/
+    function selectCabinetTree() {
+        var options = {
+            title: '货柜管理选择',
+            width: "380",
+            url: prefix + "/selectCabinetTree/" + $("#treeId").val(),
+            callBack: doSubmit
+        };
+        $.modal.openOptions(options);
+    }
+
+    function doSubmit(index, layero){
+        var body = layer.getChildFrame('body', index);
+        $("#treeId").val(body.find('#treeId').val());
+        $("#treeName").val(body.find('#treeName').val());
+        layer.close(index);
+    }
+</script>
+</body>
+</html>

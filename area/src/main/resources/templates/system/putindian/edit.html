@@ -1,0 +1,45 @@
+﻿<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" >
+<head>
+    <th:block th:include="include :: header('修改投放点')" />
+</head>
+<body class="white-bg">
+    <div class="wrapper wrapper-content animated fadeInRight ibox-content">
+        <form class="form-horizontal m" id="form-putindian-edit" th:object="${putindian}">
+            <input name="putinId" th:field="*{putinId}" type="hidden">
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">小区id：</label>
+                <div class="col-sm-8">
+                    <input name="plotId" th:field="*{plotId}" class="form-control" type="text" disabled>
+                </div>
+            </div>
+            <div class="form-group">    
+                <label class="col-sm-3 control-label">显示顺序：</label>
+                <div class="col-sm-8">
+                    <input name="orderNum" th:field="*{orderNum}" class="form-control" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"  placeholder="请输入数字" type="text">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label">密钥：</label>
+                <div class="col-sm-8">
+                    <input name="orderNum" th:field="*{secret}" class="form-control" type="text" >
+                </div>
+            </div>
+        </form>
+    </div>
+    <th:block th:include="include :: footer" />
+    <script th:inline="javascript">
+        var prefix = ctx + "system/putindian";
+        $("#form-putindian-edit").validate({
+            focusCleanup: true
+        });
+
+        function submitHandler() {
+            if ($.validate.form()) {
+                $.operate.save(prefix + "/edit", $('#form-putindian-edit').serialize());
+            }
+        }
+    </script>
+</body>
+</html>

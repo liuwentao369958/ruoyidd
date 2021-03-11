@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.category.mapper.GoodsCategoryMapper">
+    
+    <resultMap type="GoodsCategory" id="GoodsCategoryResult">
+        <result property="projectId"    column="project_id"    />
+        <result property="parentprojectId"    column="parentproject_id"    />
+        <result property="ancestors"    column="ancestors"    />
+        <result property="projectName"    column="project_name"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="images"    column="images"    />
+        <result property="parentName" column="parent_name" />
+    </resultMap>
+
+    <sql id="selectGoodsCategoryVo">
+        select project_id, parentproject_id, ancestors, project_name, order_num, create_by, create_time, update_by, update_time, images from goods_category
+    </sql>
+
+    <!-- ================================================     -->
+    <select id="selectcategoryCount" parameterType="GoodsCategory" resultType="int">
+        select count(1) from goods_category
+        where parentproject_id = #{projectId}
+    </select>
+
+    <select id="selectcategoryById" parameterType="Long" resultMap="GoodsCategoryResult">
+		 SELECT project_id, parentproject_id, ancestors, project_name, order_num,
+			(SELECT project_name FROM goods_category WHERE project_id = parentproject_id) parent_name
+		FROM goods_category
+		WHERE project_id = #{projectId}
+	</select>
+
+    <!--==================================================================-->
+
+    <select id="selectGoodsCategoryList" parameterType="GoodsCategory" resultMap="GoodsCategoryResult">
+        <include refid="selectGoodsCategoryVo"/>
+        <where>
+            <if test="createBy != null and createBy != ''"> and create_by = #{createBy}</if>
+            <if test="createTime != null  and createTime != ''"> and create_time = #{createTime}</if>
+            <if test="projectName != null  and projectName != ''"> and project_name like concat('%', #{projectName}, '%')</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                and date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+        order by parentproject_id
+    </select>
+    
+    <select id="selectGoodsCategoryById" parameterType="Long" resultMap="GoodsCategoryResult">
+        select t.project_id, t.parentproject_id, t.ancestors, t.project_name, t.order_num, t.create_by, t.create_time, t.update_by, t.update_time, t.images, p.project_name as parent_name
+        from goods_category t
+        left join goods_category p on p.project_id = t.parentproject_id
+        where t.project_id = #{projectId}
+    </select>
+        
+    <insert id="insertGoodsCategory" parameterType="GoodsCategory" useGeneratedKeys="true" keyProperty="projectId">
+        insert into goods_category
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentprojectId != null">parentproject_id,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="projectName != null">project_name,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+            <if test="images != null">images,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentprojectId != null">#{parentprojectId},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="projectName != null">#{projectName},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+            <if test="images != null">#{images},</if>
+         </trim>
+    </insert>
+
+    <update id="updateGoodsCategory" parameterType="GoodsCategory">
+        update goods_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentprojectId != null">parentproject_id = #{parentprojectId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="projectName != null">project_name = #{projectName},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="images != null">images = #{images},</if>
+        </trim>
+        where project_id = #{projectId}
+    </update>
+
+    <delete id="deleteGoodsCategoryById" parameterType="Long">
+        delete from goods_category where project_id = #{projectId}
+    </delete>
+
+    <delete id="deleteGoodsCategoryByIds" parameterType="String">
+        delete from goods_category where project_id in 
+        <foreach item="projectId" collection="array" open="(" separator="," close=")">
+            #{projectId}
+        </foreach>
+    </delete>
+
+</mapper>

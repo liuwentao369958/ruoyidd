@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <th:block th:include="include :: header('新增商品分类')"/>
+    <th:block th:include="include :: bootstrap-fileinput-css"/>
+    <th:block th:include="include :: jasny-bootstrap-css"/>
+</head>
+<body class="white-bg">
+<div class="wrapper wrapper-content animated fadeInRight ibox-content">
+    <form class="form-horizontal m" id="form-table-add">
+        <div class="form-group">
+            <label class="col-sm-3 control-label">父商品id：</label>
+            <div class="col-sm-8">
+                <div class="input-group">
+                    <input id="treeId" name="parentprojectId" type="hidden" th:value="${goodsCategory?.projectId}"/>
+                    <input class="form-control" type="text" onclick="selectTableTree()" id="treeName" readonly="true"
+                           th:value="${goodsCategory?.projectName}">
+                    <span class="input-group-addon"><i class="fa fa-search"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">商品名称：</label>
+            <div class="col-sm-8">
+                <input name="projectName" class="form-control" type="text" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">显示顺序：</label>
+            <div class="col-sm-8">
+                <input name="orderNum" class="form-control" type="text" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"  placeholder="请输入数字" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-sm-3 control-label">选择商品图片：</label>
+            <div class="col-sm-8">
+                <div class="form-group" style="margin-left: 4px;">
+                    <div class="fileinput fileinput-new" data-provides="fileinput">
+                        <div>
+                            <span class="btn btn-white btn-file"><span class="fileinput-new"><span
+                                    class="glyphicon glyphicon-folder-open"></span>选择图片</span><span
+                                    class="fileinput-exists">更改</span>
+                            <input id="filePath" name="filePath" class="form-control" type="file"></span>
+                            <a th:href="@{/category/table/eliminate}" class="btn btn-white fileinput-exists" data-dismiss="fileinput">清除</a>
+                            <button type="button" class="btn btn-w-m btn-danger fileinput-exists"
+                                    onclick="uploadFile()">
+                                <span class="glyphicon glyphicon-open"></span>上传
+                            </button>
+
+                        </div>
+                        <div class="fileinput-preview thumbnail" data-trigger="fileinput"
+                             style="width: 200px; height: 150px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<th:block th:include="include :: footer"/>
+<th:block th:include="include :: bootstrap-fileinput-js"/>
+<th:block th:include="include :: jasny-bootstrap-js"/>
+<script th:inline="javascript">
+    var prefix = ctx + "category/table"
+    $("#form-table-add").validate({
+        focusCleanup: true
+    });
+    function uploadFile() {
+        var formData = new FormData();
+        if ($('#filePath')[0].files[0] == null) {
+            $.modal.alertWarning("请先选择文件路径");
+            return false;
+        }
+        formData.append('fileName', $("#fileName").val());
+        formData.append('file', $('#filePath')[0].files[0]);
+        $.ajax({
+            url: prefix + "/images",
+            type: 'post',
+            cache: false,
+            data: formData,
+            processData: false,
+            dataType: "json",
+            contentType: false,
+            success: function (result) {
+                $.operate.successCallback(result);
+            }
+        });
+    }
+
+    /*商品分类-新增-选择父部门树*/
+    function selectTableTree() {
+        var options = {
+            title: '商品分类选择',
+            width: "380",
+            url: prefix + "/selectTableTree/" + $("#treeId").val(),
+            callBack: doSubmit
+        };
+        $.modal.openOptions(options);
+    }
+
+    function doSubmit(index, layero) {
+        var body = layer.getChildFrame('body', index);
+        $("#treeId").val(body.find('#treeId').val());
+        $("#treeName").val(body.find('#treeName').val());
+        layer.close(index);
+    }
+
+    async function submitHandler() {
+        if ($.validate.form()) {
+            $.operate.save(prefix + "/add", $('#form-table-add').serialize());
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.ChinaAreaTableMapper">
+    
+    <resultMap type="ChinaAreaTable" id="ChinaAreaTableResult">
+        <result property="areaId"    column="area_id"    />
+        <result property="parentareaId"    column="parentArea_id"    />
+        <result property="ancestors"    column="ancestors"    />
+        <result property="areaName"    column="area_name"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="createBy"    column="create_by"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="updateBy"    column="update_by"    />
+        <result property="updateTime"    column="update_time"    />
+        <result property="parentName" column="parent_name" />
+    </resultMap>
+
+    <sql id="selectChinaAreaTableVo">
+        select area_id, parentArea_id, ancestors, area_name, order_num, create_by, create_time, update_by, update_time from china_area_table
+    </sql>
+
+    <select id="selectChinaAreaTableList" parameterType="ChinaAreaTable" resultMap="ChinaAreaTableResult">
+        <include refid="selectChinaAreaTableVo"/>
+        <where>  
+            <if test="createBy != null and createBy != ''"> and create_by = #{createBy}</if>
+            <if test="createTime != null  and createTime != ''"> and create_time = #{createTime}</if>
+            <if test="areaName != null  and areaName != ''"> and area_name like concat('%', #{areaName}, '%')</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                and date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+        order by parentArea_id
+    </select>
+
+    <select id="selectareaCount" parameterType="ChinaAreaTable" resultType="int">
+        select count(1) from china_area_table
+        where parentArea_id = #{areaId}
+    </select>
+
+
+    <select id="selectareaById" parameterType="Long" resultMap="ChinaAreaTableResult">
+		 SELECT area_id, parentArea_id, ancestors, area_name, order_num,
+			(SELECT area_name FROM china_area_table WHERE area_id = parentArea_id) parent_name
+		FROM china_area_table
+		WHERE area_id = #{areaId}
+	</select>
+
+    
+    <select id="selectChinaAreaTableById" parameterType="Long" resultMap="ChinaAreaTableResult">
+        select t.area_id, t.parentArea_id, t.ancestors, t.area_name, t.order_num, t.create_by, t.create_time, t.update_by, t.update_time, p.area_name as parent_name
+        from china_area_table t
+        left join china_area_table p on p.area_id = t.parentArea_id
+        where t.area_id = #{areaId}
+    </select>
+        
+    <insert id="insertChinaAreaTable" parameterType="ChinaAreaTable" useGeneratedKeys="true" keyProperty="areaId">
+        insert into china_area_table
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentareaId != null">parentArea_id,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="areaName != null">area_name,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="createBy != null">create_by,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="updateBy != null">update_by,</if>
+            <if test="updateTime != null">update_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="parentareaId != null">#{parentareaId},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="areaName != null">#{areaName},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="createBy != null">#{createBy},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="updateBy != null">#{updateBy},</if>
+            <if test="updateTime != null">#{updateTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateChinaAreaTable" parameterType="ChinaAreaTable">
+        update china_area_table
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="parentareaId != null">parentArea_id = #{parentareaId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="areaName != null">area_name = #{areaName},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="createBy != null">create_by = #{createBy},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </trim>
+        where area_id = #{areaId}
+    </update>
+
+    <delete id="deleteChinaAreaTableById" parameterType="Long">
+        delete from china_area_table where area_id = #{areaId}
+    </delete>
+
+    <delete id="deleteChinaAreaTableByIds" parameterType="String">
+        delete from china_area_table where area_id in 
+        <foreach item="areaId" collection="array" open="(" separator="," close=")">
+            #{areaId}
+        </foreach>
+    </delete>
+
+</mapper>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.system.mapper.PutindianMapper">
+
+    <resultMap type="Putindian" id="PutindianResult">
+        <result property="putinId"    column="putin_id"    />
+        <result property="plotId"    column="plot_id"    />
+        <result property="putinName"    column="putin_name"    />
+        <result property="ancestors"    column="ancestors"    />
+        <result property="orderNum"    column="order_num"    />
+        <result property="createTime"    column="create_time"    />
+        <result property="secret"    column="secret"    />
+    </resultMap>
+
+    <sql id="selectPutindianVo">
+        select putin_id, plot_id, ancestors, order_num, create_time, secret ,putin_name from putindian
+    </sql>
+
+    <select id="selectPutindianList" parameterType="Putindian" resultMap="PutindianResult">
+        <include refid="selectPutindianVo"/>
+        <where>
+            <if test="plotId != null "> and plot_id = #{plotId}</if>
+            <if test="putinId != null "> and putin_id = #{putinId}</if>
+            <if test="ancestors != null  and ancestors != ''"> and ancestors = #{ancestors}</if>
+            <if test="putinName != null  and putinName != ''"> and putin_name like concat('%', #{putinName}, '%')</if>
+            <if test="orderNum != null "> and order_num = #{orderNum}</if>
+            <if test="secret != null  and secret != ''"> and secret = #{secret}</if>
+            <if test="params.beginTime != null and params.beginTime != ''"><!-- 开始时间检索 -->
+                and date_format(create_time,'%y%m%d') &gt;= date_format(#{params.beginTime},'%y%m%d')
+            </if>
+            <if test="params.endTime != null and params.endTime != ''"><!-- 结束时间检索 -->
+                and date_format(create_time,'%y%m%d') &lt;= date_format(#{params.endTime},'%y%m%d')
+            </if>
+        </where>
+    </select>
+
+
+    <select id="toufangdianchazhao" parameterType="Long" resultMap="PutindianResult">
+        select putin_id from putindian
+        where plot_id = #{plotId}
+    </select>
+
+    <select id="selectPutindianById" parameterType="Long" resultMap="PutindianResult">
+        <include refid="selectPutindianVo"/>
+        where putin_id = #{putinId}
+    </select>
+
+    <insert id="insertPutindian" parameterType="Putindian" useGeneratedKeys="true" keyProperty="putinId">
+        insert into putindian
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="plotId != null">plot_id,</if>
+            <if test="ancestors != null">ancestors,</if>
+            <if test="orderNum != null">order_num,</if>
+            <if test="createTime != null">create_time,</if>
+            <if test="secret != null">secret,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="plotId != null">#{plotId},</if>
+            <if test="ancestors != null">#{ancestors},</if>
+            <if test="orderNum != null">#{orderNum},</if>
+            <if test="createTime != null">#{createTime},</if>
+            <if test="secret != null">#{secret},</if>
+         </trim>
+    </insert>
+
+    <update id="updatePutindian" parameterType="Putindian">
+        update putindian
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="plotId != null">plot_id = #{plotId},</if>
+            <if test="ancestors != null">ancestors = #{ancestors},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="createTime != null">create_time = #{createTime},</if>
+            <if test="secret != null">secret = #{secret},</if>
+        </trim>
+        where putin_id = #{putinId}
+    </update>
+
+    <delete id="deletePutindianById" parameterType="Long">
+        delete from putindian where putin_id = #{putinId}
+    </delete>
+
+    <delete id="deletePutindianByIds" parameterType="String">
+        delete from putindian where putin_id in
+        <foreach item="putinId" collection="array" open="(" separator="," close=")">
+            #{putinId}
+        </foreach>
+    </delete>
+
+</mapper>
